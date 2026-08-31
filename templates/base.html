@@ -1,0 +1,65 @@
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Farm Management{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="navbar-brand">
+                🌾 FarmApp
+            </a>
+            <div class="nav-links">
+                <form action="{% url 'set_language' %}" method="post" class="language-form">
+                    {% csrf_token %}
+                    <label for="language-select">{% trans "Language" %}</label>
+                    <select id="language-select" name="language" onchange="this.form.submit()">
+                        {% for code, name in available_languages %}
+                            <option value="{{ code }}"{% if code == language_code %} selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                </form>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">{% trans "My Farms" %}</a>
+                    <a href="{% url 'cropcycle_list' %}">{% trans "My Crops" %}</a>
+                    <a href="{% url 'farm_list' %}">{% trans "My Fields" %}</a>
+                    <a href="{% url 'money' %}">💰 {% trans "Money" %}</a>
+                    <a href="{% url 'diary' %}">📝 {% trans "Diary" %}</a>
+                    <a href="{% url 'reminders' %}">🔔 {% trans "Alerts" %}</a>
+                    <a href="{% url 'logout' %}">{% trans "Log out" %}</a>
+                {% else %}
+                    <a href="{% url 'login' %}">{% trans "Log in" %}</a>
+                    <a href="{% url 'register' %}">{% trans "Register" %}</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

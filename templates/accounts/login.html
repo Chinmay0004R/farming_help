@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Login — FarmApp{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-icon">🌾</span>
+                <h1>{% trans "Welcome Back" %}</h1>
+                    <p>{% trans "Sign in to manage your farms" %}</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="alert alert-error">
+            {% trans "Invalid username or password. Please try again." %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <span class="form-error">{{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">{% trans "Sign In" %}</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>{% trans "Don't have an account?" %} <a href="{% url 'register' %}">{% trans "Create one" %}</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ farm.name }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{% url 'farm_list' %}" class="breadcrumb-link">← {% trans "My Farms" %}</a>
+        <h1>{{ farm.name }}</h1>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'plot_create' farm_pk=farm.pk %}" class="btn btn-primary">+ {% trans "Add Plot" %}</a>
+        <a href="{% url 'farm_update' pk=farm.pk %}" class="btn btn-outline">{% trans "Edit Farm" %}</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">📍 {% trans "Location" %}</span>
+        <span class="detail-value">{% if farm.location %}{{ farm.location }}{% else %}{% trans "Not set" %}{% endif %}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">📐 {% trans "Total area" %}</span>
+        <span class="detail-value">{{ farm.total_area }} {% trans "acres" %}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">📍 {% trans "Plots" %}</span>
+        <span class="detail-value">{{ plots.count }}</span>
+    </div>
+</div>
+
+<h2 class="section-title">{% trans "Plots" %}</h2>
+
+{% if plots %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Area (acres)" %}</th>
+                <th>{% trans "Soil type" %}</th>
+                <th>{% trans "Irrigation" %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plot in plots %}
+            <tr>
+                <td><a href="{% url 'plot_detail' pk=plot.pk %}">{{ plot.name }}</a></td>
+                <td>{{ plot.area }}</td>
+                <td>{{ plot.soil_type|default:"—" }}</td>
+                <td>{{ plot.irrigation_type|default:"—" }}</td>
+                <td class="table-actions">
+                    <a href="{% url 'plot_update' pk=plot.pk %}" class="btn btn-outline btn-sm">{% trans "Edit" %}</a>
+                    <a href="{% url 'plot_delete' pk=plot.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">📍</span>
+    <h2>{% trans "No plots yet" %}</h2>
+    <p>{% trans "Add plots to this farm to start tracking." %}</p>
+    <a href="{% url 'plot_create' farm_pk=farm.pk %}" class="btn btn-primary">+ {% trans "Add First Plot" %}</a>
+</div>
+{% endif %}
+{% endblock %}

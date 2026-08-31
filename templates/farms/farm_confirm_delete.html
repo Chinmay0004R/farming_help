@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ farm.name }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Delete Farm</h1>
+</div>
+
+<div class="card">
+    <div class="confirm-delete">
+        <span class="delete-icon">⚠️</span>
+        <h2>Are you sure?</h2>
+        <p>You are about to delete <strong>{{ farm.name }}</strong> and all of its plots. This action cannot be undone.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a href="{% url 'farm_detail' pk=farm.pk %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

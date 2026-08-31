@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{% trans "My Crop Catalog" %}</h2>
+    <a href="{% url 'crop_create' %}" class="btn btn-primary">{% trans "Add New Crop" %}</a>
+</div>
+{% if crops %}
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for crop in crops %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ crop.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{% if crop.variety %}{{ crop.variety }}{% else %}{% trans "No variety specified" %}{% endif %}</h6>
+                <ul class="list-unstyled">
+                    <li><strong>{% trans "Cycle Days" %}:</strong> {{ crop.typical_cycle_days|default:"N/A" }}</li>
+                    <li><strong>{% trans "Expected Yield/Acre" %}:</strong> {{ crop.expected_yield_per_acre|default:"N/A" }}</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a href="{% url 'crop_update' crop.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %}</a>
+                <a href="{% url 'crop_delete' crop.pk %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    {% trans "You haven't added any crops to your catalog yet. Click Add New Crop to get started." %}
+</div>
+{% endif %}
+{% endblock %}

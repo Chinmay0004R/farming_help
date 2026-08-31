@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ device.name }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center; padding: 2.5rem;">
+    <span style="font-size: 4rem; display: block; margin-bottom: 1rem;">⚠️</span>
+    <h2 style="color: #c53030; margin-bottom: 1rem;">Delete IoT Device?</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+        Are you sure you want to delete the device <strong>{{ device.name }}</strong> (ID: <code>{{ device.device_id }}</code>)?
+        This action is permanent and will stop all incoming data logs from this device.
+    </p>
+    
+    <form method="post" style="display: flex; gap: 1rem; justify-content: center;">
+        {% csrf_token %}
+        <button type="submit" class="btn" style="background-color: #e53e3e; color: white; padding: 0.75rem 1.5rem; font-weight: 600; cursor: pointer;">Yes, Delete Device</button>
+        <a href="{% url 'device_list' %}" class="btn" style="background-color: #edf2f7; color: var(--text-primary); padding: 0.75rem 1.5rem; text-decoration: none;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

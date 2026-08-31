@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <a href="{% url 'cropcycle_list' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.875rem;">← {% trans "Back to Cycles" %}</a>
+        <h1 style="margin: 0.5rem 0 0 0;">{{ cycle.crop.name }} ({{ cycle.season }})</h1>
+        <p style="color: var(--text-secondary); margin: 0;">{% trans "On field" %}: {{ cycle.plot.name }}</p>
+    </div>
+    <div>
+        <a href="{% url 'cropcycle_update' pk=cycle.pk %}" class="btn btn-outline-secondary" style="border: 1px solid var(--border-color); background: white; color: var(--text-primary);">{% trans "Edit Cycle" %}</a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card" style="margin-bottom: 0;">
+        <span style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">🌱 {% trans "Stage" %}</span>
+        <div style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">{{ cycle.growth_stage }}</div>
+    </div>
+    <div class="card" style="margin-bottom: 0;">
+        <span style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">📅 {% trans "Sowing Date" %}</span>
+        <div style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">{{ cycle.sowing_date|date:"M d, Y" }}</div>
+    </div>
+    <div class="card" style="margin-bottom: 0;">
+        <span style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">🎯 {% trans "Expected Yield" %}</span>
+        <div style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">{{ cycle.expected_yield|default:"N/A" }}</div>
+    </div>
+    <div class="card" style="margin-bottom: 0;">
+        <span style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">✅ {% trans "Actual Yield" %}</span>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin-top: 0.5rem;">{{ cycle.actual_yield|default:"0" }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">{% trans "Harvests" %}</h2>
+        <a href="{% url 'harvest_create' cycle_pk=cycle.pk %}" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">+ {% trans "Add Harvest" %}</a>
+    </div>
+    
+    {% if harvests %}
+    <div style="margin-top: 1.5rem; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary);">
+                    <th style="padding: 0.75rem 0;">{% trans "Date" %}</th>
+                    <th>{% trans "Quantity" %}</th>
+                    <th>{% trans "Grade/Quality" %}</th>
+                    <th>{% trans "Labor Cost" %}</th>
+                    <th>{% trans "Action" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for harvest in harvests %}
+                <tr style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 1rem 0;">{{ harvest.date|date:"M d, Y" }}</td>
+                    <td style="font-weight: 600;">{{ harvest.quantity }}</td>
+                    <td>{{ harvest.grade_or_quality|default:"-" }}</td>
+                    <td>{{ harvest.labor_cost|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'harvest_update' harvest.pk %}" style="color: var(--primary-color); text-decoration: none; margin-right: 1rem;">{% trans "Edit" %}</a>
+                        <a href="{% url 'harvest_delete' harvest.pk %}" style="color: #E53E3E; text-decoration: none;">{% trans "Delete" %}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="margin-top: 1.5rem; padding: 2rem; text-align: center; background: var(--bg-color); border-radius: var(--border-radius);">
+        <p style="color: var(--text-secondary); margin: 0;">{% trans "No harvests recorded for this cycle yet." %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

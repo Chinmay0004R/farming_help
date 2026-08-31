@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{% trans "Crop Cycles" %}</h2>
+    <a href="{% url 'cropcycle_create' %}" class="btn btn-primary">{% trans "Add New Cycle" %}</a>
+</div>
+
+{% if cycles %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>{% trans "Plot" %}</th>
+                <th>{% trans "Crop" %}</th>
+                <th>{% trans "Season" %}</th>
+                <th>{% trans "Sowing Date" %}</th>
+                <th>{% trans "Stage" %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cycle in cycles %}
+            <tr>
+                <td>{{ cycle.plot.name }} <br><small class="text-muted">{{ cycle.plot.farm.name }}</small></td>
+                <td><a href="{% url 'cropcycle_detail' cycle.pk %}" style="text-decoration: none; font-weight: 500; color: var(--primary-color);">{{ cycle.crop.name }}</a></td>
+                <td>{{ cycle.season }}</td>
+                <td>{{ cycle.sowing_date|date:"M d, Y" }}</td>
+                <td>
+                    <span class="badge 
+                        {% if cycle.growth_stage == 'Completed' %}bg-success
+                        {% elif cycle.growth_stage == 'Failed' %}bg-danger
+                        {% else %}bg-info{% endif %}">
+                        {{ cycle.growth_stage }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'cropcycle_update' cycle.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %}</a>
+                    <a href="{% url 'cropcycle_delete' cycle.pk %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    {% trans "No crop cycles found. Click Add New Cycle to track what you are growing on your fields." %}
+</div>
+{% endif %}
+{% endblock %}

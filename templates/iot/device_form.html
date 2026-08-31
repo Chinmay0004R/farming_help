@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — FarmApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    .form-help {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
+    .form-error {
+        display: block;
+        font-size: 0.85rem;
+        color: #e53e3e;
+        margin-top: 0.25rem;
+    }
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 2rem;">
+    <div>
+        <a href="{% url 'device_list' %}" class="breadcrumb-link" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: block; margin-bottom: 0.5rem;">← Back to Device List</a>
+        <h1 style="margin: 0;">{{ title }}</h1>
+    </div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto; padding: 2rem;">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <span class="form-help">{{ field.help_text }}</span>
+            {% endif %}
+            {% if field.errors %}
+            <span class="form-error">{{ field.errors.0 }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Save Device</button>
+            <a href="{% url 'device_list' %}" class="btn" style="background-color: #edf2f7; color: var(--text-primary); padding: 0.75rem 1.5rem; text-decoration: none;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

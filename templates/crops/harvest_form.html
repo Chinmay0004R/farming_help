@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; padding-bottom: 1rem;">
+        <h3 style="margin: 0;">{{ title }}</h3>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+                <label for="{{ form.date.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.date.label }}</label>
+                {{ form.date }}
+                <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.date.errors }}</div>
+            </div>
+            <div>
+                <label for="{{ form.quantity.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.quantity.label }}</label>
+                {{ form.quantity }}
+                <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.quantity.errors }}</div>
+                <div style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">{{ form.quantity.help_text }}</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+                <label for="{{ form.grade_or_quality.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.grade_or_quality.label }}</label>
+                {{ form.grade_or_quality }}
+                <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.grade_or_quality.errors }}</div>
+                <div style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">{{ form.grade_or_quality.help_text }}</div>
+            </div>
+            <div>
+                <label for="{{ form.moisture_content.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.moisture_content.label }}</label>
+                {{ form.moisture_content }}
+                <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.moisture_content.errors }}</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+                <label for="{{ form.labor_cost.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.labor_cost.label }}</label>
+                {{ form.labor_cost }}
+                <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.labor_cost.errors }}</div>
+            </div>
+            <div>
+                <label for="{{ form.transport_cost.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.transport_cost.label }}</label>
+                {{ form.transport_cost }}
+                <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.transport_cost.errors }}</div>
+            </div>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <label for="{{ form.notes.id_for_label }}" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">{{ form.notes.label }}</label>
+            {{ form.notes }}
+            <div style="color: #E53E3E; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.notes.errors }}</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'cropcycle_detail' pk=cycle.pk %}" class="btn btn-outline-secondary" style="border: 1px solid var(--border-color); text-decoration: none; color: var(--text-primary); padding: 0.5rem 1rem; border-radius: var(--border-radius);">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary" style="border: none;">{% trans "Save Harvest" %}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}IoT Devices — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>🤖 IoT Sensor Devices</h1>
+    <a href="{% url 'device_create' %}" class="btn btn-primary">+ Register Device</a>
+</div>
+
+{% if devices %}
+<div class="card-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    {% for device in devices %}
+    <div class="card device-card" style="position: relative; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid var(--primary-color);">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0; font-size: 1.25rem; color: var(--text-primary);">{{ device.name }}</h3>
+                {% if device.is_active %}
+                    <span style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #def7ec; color: #03543f; border-radius: 9999px; font-weight: 600;">Active</span>
+                {% else %}
+                    <span style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #fbd5d5; color: #9b1c1c; border-radius: 9999px; font-weight: 600;">Inactive</span>
+                {% endif %}
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 1rem 0;">ID: <code>{{ device.device_id }}</code></p>
+            
+            <div style="margin-bottom: 1rem; font-size: 0.95rem;">
+                <div style="margin-bottom: 0.5rem;">
+                    <strong>📍 Plot:</strong> <a href="{% url 'plot_detail' pk=device.plot.pk %}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">{{ device.plot.name }}</a>
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">({{ device.plot.farm.name }})</span>
+                </div>
+                <div>
+                    <strong>📶 Last Seen:</strong>
+                    {% if device.last_seen %}
+                        <span style="color: var(--text-primary);">{{ device.last_seen|date:"M d, Y H:i" }}</span>
+                    {% else %}
+                        <span style="color: var(--text-secondary); font-style: italic;">Never reported</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+            <a href="{% url 'device_detail' pk=device.pk %}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.4rem 0.8rem; flex: 1;">Setup & Code</a>
+            <a href="{% url 'device_update' pk=device.pk %}" class="btn" style="background-color: #edf2f7; color: var(--text-primary); font-size: 0.875rem; padding: 0.4rem 0.8rem;">Edit</a>
+            <a href="{% url 'device_delete' pk=device.pk %}" class="btn" style="background-color: #fed7d7; color: #c53030; font-size: 0.875rem; padding: 0.4rem 0.8rem;">Delete</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: var(--surface-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+    <span class="empty-icon" style="font-size: 4rem; display: block; margin-bottom: 1rem;">📡</span>
+    <h2 style="margin-bottom: 0.5rem;">No IoT Devices Registered</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">Link your ESP32 soil moisture devices to monitor plot health in real time.</p>
+    <a href="{% url 'device_create' %}" class="btn btn-primary">+ Register Your First Device</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 2rem auto; border-top: 4px solid #E53E3E;">
+    <div style="text-align: center; padding: 1rem 0;">
+        <h3 style="color: #E53E3E; margin-bottom: 1rem;">{% trans "Delete Harvest Record" %}</h3>
+        <p style="font-size: 1.125rem;">{% trans "Are you sure you want to delete this harvest?" %}</p>
+        <div style="background: var(--bg-color); padding: 1rem; border-radius: var(--border-radius); margin: 1.5rem 0; text-align: left;">
+            <p style="margin: 0.25rem 0;"><strong>{% trans "Date" %}:</strong> {{ harvest.date|date:"M d, Y" }}</p>
+            <p style="margin: 0.25rem 0;"><strong>{% trans "Quantity" %}:</strong> {{ harvest.quantity }}</p>
+            <p style="margin: 0.25rem 0;"><strong>{% trans "Cycle" %}:</strong> {{ harvest.crop_cycle.crop.name }} ({{ harvest.crop_cycle.season }})</p>
+        </div>
+        <p style="color: #E53E3E; font-size: 0.875rem;">{% trans "This action cannot be undone and will recalculate the actual yield for the crop cycle." %}</p>
+        
+        <form method="post" style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+            {% csrf_token %}
+            <a href="{% url 'cropcycle_detail' pk=harvest.crop_cycle.pk %}" class="btn btn-outline-secondary" style="border: 1px solid var(--border-color); text-decoration: none; color: var(--text-primary); padding: 0.5rem 1.5rem; border-radius: var(--border-radius);">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn" style="background-color: #E53E3E; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: var(--border-radius);">{% trans "Yes, Delete" %}</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

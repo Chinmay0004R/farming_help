@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}शेती डायरी — FarmApp{% endblock %}
+{% block content %}
+<div class="page-header"><div><p class="eyebrow">{% trans "Daily Notes" %}</p><h1>📝 {% trans "My Farm Diary" %}</h1><p class="welcome-copy">{% trans "Record what happened in the field today." %}</p></div></div>
+<div class="two-column home-section"><section class="card form-panel"><h2>{% trans "Today's Entry" %}</h2><form method="post">{% csrf_token %}{% for field in form %}<div class="form-group"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}</div>{% endfor %}<button class="btn btn-primary" type="submit">{% trans "Save Entry" %}</button></form></section><section><h2>{% trans "Recent Entries" %}</h2><div class="diary-list">{% for entry in entries %}<article class="diary-entry"><div class="diary-date">{{ entry.date|date:"d" }}<small>{{ entry.date|date:"M" }}</small></div><div><h3>{{ entry.title }}</h3><p>{{ entry.note }}</p>{% if entry.plot %}<small class="muted">🌱 {{ entry.plot.name }}</small>{% endif %}</div></article>{% empty %}<div class="empty-state compact"><span class="empty-icon">📝</span><h2>{% trans "Your diary is empty" %}</h2><p>{% trans "Write your first entry." %}</p></div>{% endfor %}</div></section></div>
+{% endblock %}

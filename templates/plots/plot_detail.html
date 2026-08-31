@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ plot.name }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{% url 'farm_detail' pk=plot.farm.pk %}" class="breadcrumb-link">← {% trans "Back to" %} {{ plot.farm.name }}</a>
+        <h1>{{ plot.name }}</h1>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'plot_update' pk=plot.pk %}" class="btn btn-outline">{% trans "Edit Field" %}</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">📐 {% trans "Area" %}</span>
+        <span class="detail-value">{{ plot.area }} acres</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">🌱 {% trans "Soil type" %}</span>
+        <span class="detail-value">{{ plot.soil_type|default:"Not specified" }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">💧 {% trans "Irrigation" %}</span>
+        <span class="detail-value">{{ plot.irrigation_type|default:"Not specified" }}</span>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    .status-dry {
+        background-color: #fff5f5;
+        color: #e53e3e;
+        border: 1px solid #feb2b2;
+    }
+    .status-optimal {
+        background-color: #f0fff4;
+        color: #38a169;
+        border: 1px solid #9ae6b4;
+    }
+    .status-wet {
+        background-color: #ebf8ff;
+        color: #3182ce;
+        border: 1px solid #90cdf4;
+    }
+    .sensor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .sensor-card {
+        background: #f7fafc;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .sensor-val {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: block;
+        margin: 0.5rem 0;
+    }
+    .chart-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .chart-btn {
+        background-color: #edf2f7;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .chart-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+<div class="card" style="margin-top: 2rem; padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">📡 IoT Sensor Dashboard</h2>
+        {% if plot.iot_devices.all %}
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                Active Device: 
+                {% for device in plot.iot_devices.all %}
+                    <a href="{% url 'device_detail' pk=device.pk %}" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">
+                        {{ device.name }}
+                    </a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <a href="{% url 'device_create' %}?plot={{ plot.pk }}" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">+ Link Device</a>
+        {% endif %}
+    </div>
+
+    {% if latest_reading %}
+    <!-- Latest Reading Indicators -->
+    <div class="sensor-grid">
+        <div class="sensor-card" style="border-top: 4px solid var(--primary-light);">
+            <span class="detail-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">💧 Soil Moisture</span>
+            <span class="sensor-val">{{ latest_reading.soil_moisture|default:"-" }}%</span>
+            {% if latest_reading.soil_moisture %}
+                {% if latest_reading.soil_moisture < 30 %}
+                    <span class="status-badge status-dry">⚠️ Dry - Needs Water</span>
+                {% elif latest_reading.soil_moisture >= 30 and latest_reading.soil_moisture <= 70 %}
+                    <span class="status-badge status-optimal">✓ Optimal Moisture</span>
+                {% else %}
+                    <span class="status-badge status-wet">💧 Saturated / Wet</span>
+                {% endif %}
+            {% else %}
+                <span class="status-badge" style="background-color: #f7fafc; color: var(--text-secondary);">No reading</span>
+            {% endif %}
+        </div>
+
+        <div class="sensor-card" style="border-top: 4px solid #ed8936;">
+            <span class="detail-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">🌡️ Temperature</span>
+            <span class="sensor-val">{{ latest_reading.temperature|default:"-" }} °C</span>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Ambient air reading</span>
+        </div>
+
+        <div class="sensor-card" style="border-top: 4px solid #4299e1;">
+            <span class="detail-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">💨 Humidity</span>
+            <span class="sensor-val">{{ latest_reading.humidity|default:"-" }}%</span>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Relative humidity</span>
+        </div>
+
+        <div class="sensor-card" style="border-top: 4px solid #a0aec0;">
+            <span class="detail-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">🔋 Device Status</span>
+            <span class="sensor-val" style="font-size: 1.5rem; margin-top: 0.75rem; margin-bottom: 0.75rem;">
+                {% if latest_reading.battery_voltage %}
+                    {{ latest_reading.battery_voltage }} V
+                {% else %}
+                    Connected
+                {% endif %}
+            </span>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Last updated: {{ latest_reading.recorded_at|date:"M d, H:i" }}</span>
+        </div>
+    </div>
+
+    <!-- Trend Chart Container -->
+    <div style="background-color: #fff; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem; margin-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">📈 Historical Sensor Trends</h3>
+            <div class="chart-controls">
+                <button onclick="filterChart('all')" id="btn-all" class="chart-btn active">All Metrics</button>
+                <button onclick="filterChart('moisture')" id="btn-moisture" class="chart-btn">Moisture Only</button>
+                <button onclick="filterChart('temp-hum')" id="btn-temp-hum" class="chart-btn">Temp & Humidity</button>
+            </div>
+        </div>
+        
+        <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="sensorChart"></canvas>
+        </div>
+    </div>
+    {% else %}
+        {% if plot.iot_devices.all %}
+            <div style="text-align: center; padding: 3rem 1.5rem; background-color: #f7fafc; border-radius: var(--border-radius); border: 1px dashed var(--border-color);">
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📡</span>
+                <p style="margin: 0; color: var(--text-secondary); font-weight: 500;">
+                    Device is linked, but no readings have been posted yet.
+                </p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary);">
+                    Use the instructions on the <a href="{% url 'device_detail' pk=plot.iot_devices.first.pk %}" style="color: var(--primary-color); font-weight: 600;">Device Setup page</a> to start sending data.
+                </p>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem 1.5rem; background-color: #f7fafc; border-radius: var(--border-radius); border: 1px dashed var(--border-color);">
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🥀</span>
+                <p style="margin: 0; color: var(--text-secondary); font-weight: 500;">
+                    No ESP32 readings received for this plot.
+                </p>
+                <a href="{% url 'device_create' %}?plot={{ plot.pk }}" class="btn btn-primary" style="margin-top: 1rem; font-size: 0.9rem;">
+                    Link ESP32 Sensor
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Crop Cycles</h2>
+        <a href="{% url 'cropcycle_create' %}?plot={{ plot.pk }}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">+ Add Cycle</a>
+    </div>
+    
+    {% if plot.crop_cycles.all %}
+    <div style="margin-top: 1rem; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary);">
+                    <th style="padding: 0.5rem 0;">Crop</th>
+                    <th>Season</th>
+                    <th>Sowing Date</th>
+                    <th>Stage</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cycle in plot.crop_cycles.all %}
+                <tr style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 0.75rem 0; font-weight: 500;">{{ cycle.crop.name }}</td>
+                    <td>{{ cycle.season }}</td>
+                    <td>{{ cycle.sowing_date|date:"M d, Y" }}</td>
+                    <td>
+                        <span style="padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+                            {% if cycle.growth_stage == 'Completed' %}background-color: #d4edda; color: #155724;
+                            {% elif cycle.growth_stage == 'Failed' %}background-color: #f8d7da; color: #721c24;
+                            {% else %}background-color: #cce5ff; color: #004085;{% endif %}">
+                            {{ cycle.growth_stage }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'cropcycle_update' cycle.pk %}" style="color: var(--primary-color); text-decoration: none; margin-right: 0.5rem;">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="margin-top: 1rem; color: var(--text-secondary);">No crop cycles recorded for this plot yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const readings = {{ readings_json|safe }};
+        if (!readings || readings.length === 0) return;
+
+        const labels = readings.map(r => {
+            const d = new Date(r.recorded_at);
+            return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        });
+        const moistureData = readings.map(r => r.soil_moisture);
+        const tempData = readings.map(r => r.temperature);
+        const humidityData = readings.map(r => r.humidity);
+
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+        const sensorChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Soil Moisture (%)',
+                        data: moistureData,
+                        borderColor: '#2F855A',
+                        backgroundColor: 'rgba(47, 133, 90, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Temperature (°C)',
+                        data: tempData,
+                        borderColor: '#ed8936',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.35,
+                        fill: false,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Humidity (%)',
+                        data: humidityData,
+                        borderColor: '#4299e1',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.35,
+                        fill: false,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Moisture / Humidity (%)',
+                            font: { weight: 'bold' }
+                        },
+                        min: 0,
+                        max: 100
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)',
+                            font: { weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+
+        window.filterChart = function(type) {
+            document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + type).classList.add('active');
+
+            if (type === 'all') {
+                sensorChart.setDatasetVisibility(0, true);
+                sensorChart.setDatasetVisibility(1, true);
+                sensorChart.setDatasetVisibility(2, true);
+            } else if (type === 'moisture') {
+                sensorChart.setDatasetVisibility(0, true);
+                sensorChart.setDatasetVisibility(1, false);
+                sensorChart.setDatasetVisibility(2, false);
+            } else if (type === 'temp-hum') {
+                sensorChart.setDatasetVisibility(0, false);
+                sensorChart.setDatasetVisibility(1, true);
+                sensorChart.setDatasetVisibility(2, true);
+            }
+            sensorChart.update();
+        };
+    });
+</script>
+{% endblock %}

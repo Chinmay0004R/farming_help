@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{% url 'farm_detail' pk=farm.pk %}" class="breadcrumb-link">← {% trans "Back to" %} {{ farm.name }}</a>
+        <h1>{{ title }}</h1>
+    </div>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <span class="form-help">{{ field.help_text }}</span>
+            {% endif %}
+            {% if field.errors %}
+            <span class="form-error">{{ field.errors.0 }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{% trans "Save Field" %}</button>
+            <a href="{% url 'farm_detail' pk=farm.pk %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

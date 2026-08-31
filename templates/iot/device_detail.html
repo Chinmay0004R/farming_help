@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ device.name }} — IoT Setup — FarmApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .key-box {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: #f7fafc;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        margin: 1rem 0;
+    }
+    .key-value {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        flex: 1;
+    }
+    .code-container {
+        position: relative;
+        background-color: #1a202c;
+        color: #edf2f7;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        overflow-x: auto;
+        margin-top: 1rem;
+        max-height: 500px;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .copy-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 2rem;">
+    <div>
+        <a href="{% url 'device_list' %}" class="breadcrumb-link" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: block; margin-bottom: 0.5rem;">← Back to Device List</a>
+        <h1 style="margin: 0;">Device Setup: {{ device.name }}</h1>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
+    <!-- Metadata & Auth -->
+    <div>
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Device Info</h2>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0; font-weight: bold; color: var(--text-secondary);">Device ID</td>
+                    <td style="padding: 0.75rem 0;"><code>{{ device.device_id }}</code></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0; font-weight: bold; color: var(--text-secondary);">Assigned Plot</td>
+                    <td style="padding: 0.75rem 0;">
+                        <a href="{% url 'plot_detail' pk=device.plot.pk %}" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">
+                            {{ device.plot.name }}
+                        </a>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0; font-weight: bold; color: var(--text-secondary);">Last Ping</td>
+                    <td style="padding: 0.75rem 0;">
+                        {% if device.last_seen %}
+                            {{ device.last_seen|date:"M d, Y H:i" }}
+                        {% else %}
+                            <span style="color: var(--text-secondary); font-style: italic;">Never seen</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem 0; font-weight: bold; color: var(--text-secondary);">Status</td>
+                    <td style="padding: 0.75rem 0;">
+                        {% if device.is_active %}
+                            <span style="color: #2f855a; font-weight: 600;">● Active</span>
+                        {% else %}
+                            <span style="color: #c53030; font-weight: 600;">● Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card" style="padding: 1.5rem;">
+            <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 0.5rem; color: #c53030;">Authentication Key</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                This secret token authenticates the ESP32 to upload sensor readings. Keep it private.
+            </p>
+            
+            <div class="key-box">
+                <span id="key-value-text" class="key-value" style="font-size: 0.85rem;">••••••••-••••-••••-••••-••••••••••••</span>
+                <button id="toggle-key-btn" class="btn" style="background-color: #edf2f7; color: var(--text-primary); font-size: 0.75rem; padding: 0.35rem 0.6rem;">Reveal</button>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button id="copy-key-btn" class="btn btn-primary" style="font-size: 0.85rem; flex: 1; padding: 0.5rem;">Copy Key</button>
+                <form method="post" action="{% url 'device_regenerate_key' pk=device.pk %}" style="display: inline;" onsubmit="return confirm('Regenerating this key will break the connection on any device currently using the old key. Proceed?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="background-color: #fffaf0; border: 1px solid #fbd38d; color: #c05621; font-size: 0.85rem; padding: 0.5rem;">Regenerate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- C++ Arduino Sketch -->
+    <div class="card" style="padding: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-top: 0; margin-bottom: 0.5rem;">ESP32 Firmware Setup</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+            Copy this Arduino sketch and flash it to your ESP32 board using the Arduino IDE. 
+            The server address and your device's authentication key are already pre-populated.
+        </p>
+
+        <div style="background-color: #ebf8ff; border-left: 4px solid #3182ce; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.9rem; color: #2b6cb0;">
+            <strong>💡 Pin Connection Tips:</strong> Connect your Capacitive Soil Moisture Sensor's signal output pin to the analog read pin <code>GPIO 34</code> on the ESP32, and power it with 3.3V.
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sketch Code</h3>
+        <div class="code-container">
+            <button id="copy-code-btn" class="copy-btn">Copy Sketch</button>
+            <pre><code id="sketch-code-text">{{ arduino_sketch }}</code></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Reveal/Hide Key Logic
+    const rawKey = "{{ device.device_key }}";
+    const maskedKey = "••••••••-••••-••••-••••-••••••••••••";
+    const keyElement = document.getElementById("key-value-text");
+    const toggleBtn = document.getElementById("toggle-key-btn");
+    let isRevealed = false;
+
+    toggleBtn.addEventListener("click", () => {
+        if (isRevealed) {
+            keyElement.textContent = maskedKey;
+            toggleBtn.textContent = "Reveal";
+        } else {
+            keyElement.textContent = rawKey;
+            toggleBtn.textContent = "Hide";
+        }
+        isRevealed = !isRevealed;
+    });
+
+    // Copy Key Logic
+    const copyKeyBtn = document.getElementById("copy-key-btn");
+    copyKeyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(rawKey).then(() => {
+            const originalText = copyKeyBtn.textContent;
+            copyKeyBtn.textContent = "Copied!";
+            copyKeyBtn.style.backgroundColor = "#48bb78";
+            setTimeout(() => {
+                copyKeyBtn.textContent = originalText;
+                copyKeyBtn.style.backgroundColor = "";
+            }, 1500);
+        });
+    });
+
+    // Copy Code Logic
+    const copyCodeBtn = document.getElementById("copy-code-btn");
+    const codeText = document.getElementById("sketch-code-text");
+    copyCodeBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(codeText.textContent).then(() => {
+            copyCodeBtn.textContent = "Copied Sketch!";
+            setTimeout(() => {
+                copyCodeBtn.textContent = "Copy Sketch";
+            }, 1500);
+        });
+    });
+</script>
+{% endblock %}

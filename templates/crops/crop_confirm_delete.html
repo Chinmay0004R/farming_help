@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">{% trans "Delete Crop" %}</h3>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">{% blocktrans with name=crop.name %}Are you sure you want to delete the crop "{{ name }}"?{% endblocktrans %}</p>
+                <p class="text-danger">{% trans "This action cannot be undone. It may affect existing crop cycles linked to this crop." %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="{% url 'crop_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

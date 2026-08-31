@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}My Farms — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🌾 {% trans "My Farms" %}</h1>
+    <a href="{% url 'farm_create' %}" class="btn btn-primary">+ {% trans "Add Farm" %}</a>
+</div>
+
+{% if farms %}
+<div class="card-grid">
+    {% for farm in farms %}
+    <div class="card farm-card">
+        <div class="farm-card-header">
+            <h3>{{ farm.name }}</h3>
+            <span class="badge">{{ farm.plots.count }} plots</span>
+        </div>
+        <p class="farm-card-location">📍 {{ farm.location|default:_('No location set') }}</p>
+        <p class="farm-card-area">📐 {{ farm.total_area }} acres</p>
+        <div class="farm-card-actions">
+            <a href="{% url 'farm_detail' pk=farm.pk %}" class="btn btn-primary btn-sm">{% trans "View" %}</a>
+            <a href="{% url 'farm_update' pk=farm.pk %}" class="btn btn-outline btn-sm">{% trans "Edit" %}</a>
+            <a href="{% url 'farm_delete' pk=farm.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">🌱</span>
+    <h2>{% trans "No farms yet" %}</h2>
+    <p>{% trans "Add your first farm to get started!" %}</p>
+    <a href="{% url 'farm_create' %}" class="btn btn-primary">+ {% trans "Add Your First Farm" %}</a>
+</div>
+{% endif %}
+{% endblock %}

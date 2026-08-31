@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Delete {{ plot.name }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% trans "Delete Field" %}</h1>
+</div>
+
+<div class="card">
+    <div class="confirm-delete">
+        <span class="delete-icon">⚠️</span>
+        <h2>{% trans "Are you sure?" %}</h2>
+        <p>{% blocktrans with plot=plot.name farm=plot.farm.name %}You are about to delete field {{ plot }} from {{ farm }}. This action cannot be undone.{% endblocktrans %}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
+                <a href="{% url 'plot_detail' pk=plot.pk %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

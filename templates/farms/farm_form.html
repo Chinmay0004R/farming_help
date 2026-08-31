@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }} — FarmApp{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ title }}</h1>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.name == 'location' %}
+            <button type="button" class="btn btn-outline location-button" id="use-location">📍 {% trans "Use my current location" %}</button>
+            <span class="form-help" id="location-status" aria-live="polite"></span>
+            {% endif %}
+            {% if field.help_text %}
+            <span class="form-help">{{ field.help_text }}</span>
+            {% endif %}
+            {% if field.errors %}
+            <span class="form-error">{{ field.errors.0 }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{% trans "Save Farm" %}</button>
+            <a href="{% url 'farm_list' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const locationButton = document.getElementById('use-location');
+    const locationStatus = document.getElementById('location-status');
+    const latitudeInput = document.getElementById('id_latitude');
+    const longitudeInput = document.getElementById('id_longitude');
+
+    locationButton.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            locationStatus.textContent = '{% trans "Location selection is not supported by this browser." %}';
+            return;
+        }
+        locationStatus.textContent = '{% trans "Requesting your location..." %}';
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            latitudeInput.value = position.coords.latitude.toFixed(6);
+            longitudeInput.value = position.coords.longitude.toFixed(6);
+            locationStatus.textContent = '{% trans "Finding the place name..." %}';
+            try {
+                const response = await fetch(
+                    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
+                );
+                const place = await response.json();
+                const placeName = [place.city || place.locality, place.principalSubdivision, place.countryName]
+                    .filter(Boolean)
+                    .filter((value, index, values) => values.indexOf(value) === index)
+                    .join(', ');
+                document.getElementById('id_location').value = placeName || '{% trans "Current location" %}';
+            } catch (error) {
+                document.getElementById('id_location').value = '{% trans "Current location" %}';
+            }
+            locationStatus.textContent = '{% trans "Location selected. Save the farm to use it for weather." %}';
+        }, () => {
+            locationStatus.textContent = '{% trans "Location permission was not granted." %}';
+        });
+    });
+</script>
+{% endblock %}
